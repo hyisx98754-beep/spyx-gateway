@@ -10,31 +10,32 @@ const nodes = [
   "https://spyx-node-c.onrender.com/route"
 ];
 
-let i = 0;
+let index = 0;
 
-/* 🔁 ROUND ROBIN ROUTING */
+/* 🔁 LOAD BALANCER SIMPLE */
 app.get("/proxy", async (req, res) => {
   try {
     const url = req.query.url;
     if (!url) return res.send("no url");
 
-    const node = nodes[i];
-    i = (i + 1) % nodes.length;
+    const node = nodes[index];
+    index = (index + 1) % nodes.length;
 
     const response = await fetch(node + "?url=" + encodeURIComponent(url));
 
     const text = await response.text();
 
+    res.setHeader("Content-Type", "text/html");
     res.send(text);
 
-  } catch (e) {
-    console.error(e);
-    res.send("gateway error");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("gateway error");
   }
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Gateway running on port " + PORT);
+  console.log("SpyX Gateway running on " + PORT);
 });
