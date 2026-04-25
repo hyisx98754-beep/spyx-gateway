@@ -1,5 +1,4 @@
 const express = require("express");
-const fetch = require("node-fetch");
 const cors = require("cors");
 
 const app = express();
@@ -13,22 +12,29 @@ const nodes = [
 
 let i = 0;
 
+/* 🔁 ROUND ROBIN ROUTING */
 app.get("/proxy", async (req, res) => {
   try {
     const url = req.query.url;
+    if (!url) return res.send("no url");
 
     const node = nodes[i];
     i = (i + 1) % nodes.length;
 
-    const r = await fetch(node + "?url=" + encodeURIComponent(url));
+    const response = await fetch(node + "?url=" + encodeURIComponent(url));
 
-    const text = await r.text();
+    const text = await response.text();
 
     res.send(text);
+
   } catch (e) {
+    console.error(e);
     res.send("gateway error");
   }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Gateway running"));
+
+app.listen(PORT, () => {
+  console.log("Gateway running on port " + PORT);
+});
